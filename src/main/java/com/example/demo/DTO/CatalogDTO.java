@@ -1,18 +1,16 @@
-package com.example.demo.model;
+package com.example.demo.DTO;
 
-import jakarta.persistence.Entity;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Catalog {
-
+public class CatalogDTO {
     private String courseName;
-    private List<> studentsGrades;
+    private List<StudentGradeDTO> studentGrades;
 }
