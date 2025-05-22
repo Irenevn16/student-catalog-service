@@ -1,9 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.DTO.CatalogDTO;
-import com.example.demo.DTO.CourseGradeDTO;
-import com.example.demo.DTO.GradeDTO;
-import com.example.demo.DTO.StudentGradeDTO;
+import com.example.demo.DTO.*;
 import com.example.demo.repository.CatalogRepository;
 import com.example.demo.repository.StudentGradeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,41 +32,40 @@ public class CatalogService {
                 GradeDTO[].class
         );
         GradeDTO[] gradeArray = gradeResponse.getBody();
-
-        if(gradeArray == null || gradeArray.length == 0) {
+        if (gradeArray == null || gradeArray.length == 0) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
-        ResponseEntity<CourseGradeDTO> courseResponse = restTemplate.getForEntity(
-                "http://student-info-service/api/students" + courseCode,
-                CourseGradeDTO.class);
-
-        CourseGradeDTO courseGradeDTO = courseResponse.getBody();
-
-        if(courseGradeDTO == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        List<StudentGradeDTO> studentsGrades = new ArrayList<>();
+        List<StudentGradeDTO> studentGrades = new ArrayList<>();
         for (GradeDTO grade : gradeArray) {
-            ResponseEntity<StudentGradeDTO> studentResponse = restTemplate.getForEntity(
-                    "http://student-info-service/api/students" + grade.getStudentId(),
-                    StudentGradeDTO.class
+            ResponseEntity<StudentDTO> studentResponse = restTemplate.getForEntity(
+                    "http://student-info-service/api/students/" + grade.getStudentId(),
+                    StudentDTO.class
             );
-            StudentGradeDTO student = studentResponse.getBody();
+            StudentDTO student = studentResponse.getBody();
             if (student != null) {
                 StudentGradeDTO dto = new StudentGradeDTO();
                 dto.setStudentName(student.getStudentName());
                 dto.setStudentAge(student.getStudentAge());
                 dto.setGrade(grade.getGrade());
-                studentsGrades.add(dto);
+                studentGrades.add(dto);
             }
         }
+            ResponseEntity<CourseDTO> courseResponse = restTemplate.getForEntity(
+                    "http://grades-data-service/api/grades" + courseCode,
+                    CourseDTO.class
+            );
 
-        CatalogDTO catalog = new CatalogDTO();
-        catalog.setCourseName(courseGradeDTO.getCourseName());
-        catalog.setStudentGrades(studentsGrades);
+            CourseDTO courseDTO = courseResponse.getBody();
+            if (courseDTO == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
 
-        return new ResponseEntity<>(catalog, HttpStatus.OK);
+
+            CatalogDTO catalog = new CatalogDTO();
+            catalog.setCourseName(courseDTO.getCourseName());
+            catalog.setStudentGrades(studentGrades);
+
+            return new ResponseEntity<>(catalog, HttpStatus.OK);
+        }
     }
-}
+
